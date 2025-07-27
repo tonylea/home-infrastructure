@@ -1,0 +1,16 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: traefik-dashboard
+  namespace: ingress-public
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`traefik.internal.{{ .Values.publicDomain }}`)
+      kind: Rule
+      services:
+        - name: api@internal
+          kind: TraefikService
+  tls:
+    certResolver: cloudflare

@@ -1,0 +1,21 @@
+- name: Prepare Traefik directories and copy manifests
+  hosts: localhost
+  tasks:
+    - name: Create persistent volume directory for Traefik
+      ansible.builtin.file:
+        path: "{{ lookup('env', 'HOME') }}/media-config/traefik/data"
+        state: directory
+        mode: "0755"
+        recurse: true
+
+    - name: Create directory for manifests
+      ansible.builtin.file:
+        path: "{{ lookup('env', 'HOME') }}/media-config/traefik"
+        state: directory
+        mode: "0755"
+
+    - name: Copy IngressRoute manifest
+      ansible.builtin.copy:
+        src: ../../manifests/traefik-public-ingressroute.yaml
+        dest: "{{ lookup('env', 'HOME') }}/media-config/traefik/traefik-public-ingressroute.yaml"
+        mode: "0644"
