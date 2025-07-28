@@ -6,6 +6,7 @@ on:
 
 env:
   CLOUDFLARED_SECRET_NAME: cloudflared-tunnel
+  PATH: /opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
 
 jobs:
   terraform:
