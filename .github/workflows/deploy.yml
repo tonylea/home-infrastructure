@@ -15,7 +15,7 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.8.5
+          terraform_version: 1.12.2
 
       - name: Terraform Init & Apply
         working-directory: terraform/cloudflare
@@ -23,6 +23,7 @@ jobs:
           TF_VAR_cloudflare_api_token: ${{ secrets.CF_API_TOKEN }}
           TF_VAR_public_domain: ${{ secrets.PUBLIC_DOMAIN }}
           TF_VAR_cname_target: ${{ secrets.CF_CNAME_TARGET }}
+          TF_VAR_cloudflare_zone_id: ${{ secrets.CF_ZONE_ID }}
           TF_TOKEN_app_terraform_io: ${{ secrets.TF_CLOUD_TOKEN }}
         run: |
           terraform init
