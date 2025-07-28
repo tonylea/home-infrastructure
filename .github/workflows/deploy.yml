@@ -76,6 +76,6 @@ jobs:
             --set-string contactEmail=$CONTACT_EMAIL \
             --set-string extraVolumes[1].hostPath.path="$HOME/media-config/traefik"
 
-      # - name: Apply Traefik IngressRoute manifest
-      #   run: |
-      #     kubectl apply -f ~/media-config/traefik/traefik-public-ingressroute.yaml
+      - name: Apply Traefik IngressRoute manifest
+        run: |
+          kubectl apply -f ~/media-config/traefik/traefik-public-ingressroute.yaml
