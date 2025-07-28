@@ -32,6 +32,8 @@ jobs:
   deploy:
     needs: terraform
     runs-on: self-hosted
+    env:
+      PATH: /opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
