@@ -66,15 +66,20 @@ jobs:
           CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
         run: |
           helm upgrade --install traefik-public traefik/traefik \
-          --namespace ingress-public \
-          --create-namespace \
-          --values helm/traefik-public/values.yaml \
-          --set-string publicDomain=$PUBLIC_DOMAIN \
-          --set-string tunnelName=$CF_TUNNEL_NAME \
-          --set-string contactEmail=$CONTACT_EMAIL \
-          --set-string extraVolumes[1].hostPath.path="$HOME/media-config/traefik" \
-          --set-string extraVolumeMounts[1].mountPath="/data" \
-          --set installCRDs=true
+            --namespace ingress-public \
+            --create-namespace \
+            --values helm/traefik-public/values.yaml \
+            --set-string publicDomain=$PUBLIC_DOMAIN \
+            --set-string tunnelName=$CF_TUNNEL_NAME \
+            --set-string contactEmail=$CONTACT_EMAIL \
+            --set-string extraVolumes[1].hostPath.path="$HOME/media-config/traefik" \
+            --set-string extraVolumeMounts[1].mountPath="/data" \
+            --set installCRDs=true
+
+      - name: Wait for IngressRoute CRD
+        run: |
+          kubectl wait --for=condition=Established \
+            --timeout=60s crd/ingressroutes.traefik.containo.us
 
       - name: Apply Traefik IngressRoute manifest
         run: |
