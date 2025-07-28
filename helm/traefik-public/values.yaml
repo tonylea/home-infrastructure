@@ -1,17 +1,15 @@
+publicDomain: yourdomain.tld
+contactEmail: contact@yourdomain.tld
+tunnelName: your-tunnel-name
+cloudflared:
+  secretName: cloudflared-tunnel
+
 additionalArguments:
   - "--entrypoints.web.address=:80"
   - "--entrypoints.websecure.address=:443"
-  - "--certificatesresolvers.cloudflare.acme.dnschallenge=true"
-  - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
-  - "--certificatesresolvers.cloudflare.acme.email={{ .Values.contactEmail }}"
-  - "--certificatesresolvers.cloudflare.acme.storage=/data/acme.json"
-
-env:
-  - name: CF_API_TOKEN
-    valueFrom:
-      secretKeyRef:
-        name: cloudflare-api-token
-        key: token
+  - "--certificatesresolvers.lan.acme.tlschallenge=true"
+  - "--certificatesresolvers.lan.acme.email={{ .Values.contactEmail }}"
+  - "--certificatesresolvers.lan.acme.storage=/data/acme.json"
 
 volumes:
   - name: data
@@ -22,16 +20,34 @@ volumeMounts:
   - name: data
     mountPath: /data
 
-persistence:
-  enabled: true
-  accessMode: ReadWriteOnce
-  size: 1Gi
-  path: /data
+extraVolumes:
+  - name: cloudflared-tunnel
+    secret:
+      secretName: { { .Values.cloudflared.secretName } }
 
-service:
-  enabled: true
-  type: ClusterIP
+extraVolumeMounts:
+  - name: cloudflared-tunnel
+    mountPath: /etc/cloudflared
+    readOnly: true
 
 ingressRoute:
   dashboard:
     enabled: true
+    entryPoints: ["websecure"]
+    annotations:
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+persistence:
+  enabled: true
+  name: traefik-acme-pvc
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  path: "/data"
+  type: pvc

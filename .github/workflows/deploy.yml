@@ -3,27 +3,23 @@ name: Deploy to Local Infra
 on:
   push:
     branches: [main]
-  workflow_dispatch:
+
+env:
+  CLOUDFLARED_SECRET_NAME: cloudflared-tunnel
 
 jobs:
   terraform:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.12.2
+      - uses: actions/checkout@v4
 
       - name: Terraform Init & Apply
         working-directory: terraform/cloudflare
         env:
           TF_VAR_cloudflare_api_token: ${{ secrets.CF_API_TOKEN }}
+          TF_VAR_cloudflare_zone_id: ${{ secrets.CF_ZONE_ID }}
           TF_VAR_public_domain: ${{ secrets.PUBLIC_DOMAIN }}
           TF_VAR_cname_target: ${{ secrets.CF_CNAME_TARGET }}
-          TF_VAR_cloudflare_zone_id: ${{ secrets.CF_ZONE_ID }}
           TF_TOKEN_app_terraform_io: ${{ secrets.TF_CLOUD_TOKEN }}
         run: |
           terraform init
@@ -32,11 +28,8 @@ jobs:
   deploy:
     needs: terraform
     runs-on: self-hosted
-    env:
-      PATH: /opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install tools
         run: chmod +x ./scripts/setup.sh && ./scripts/setup.sh
@@ -50,32 +43,33 @@ jobs:
         run: |
           ansible-playbook -i ansible/inventory.yml ansible/playbooks/setup-local-volumes.yml
 
-  #     - name: Create cloudflared tunnel secret in Kubernetes
-  #       env:
-  #         TUNNEL_SECRET_B64: ${{ secrets.CF_TUNNEL_SECRET_B64 }}
-  #       run: |
-  #         echo "$TUNNEL_SECRET_B64" | base64 --decode > ./tunnel.json
-  #         kubectl create ns ingress-public || true
-  #         kubectl create secret generic cloudflared-tunnel \
-  #           --from-file=tunnel.json=./tunnel.json \
-  #           -n ingress-public --dry-run=client -o yaml | kubectl apply -f -
+      - name: Create cloudflared tunnel secret in Kubernetes
+        env:
+          TUNNEL_SECRET_B64: ${{ secrets.CF_TUNNEL_SECRET_B64 }}
+        run: |
+          echo "$TUNNEL_SECRET_B64" | base64 --decode > ./tunnel.json
+          kubectl create ns ingress-public || true
+          kubectl create secret generic $CLOUDFLARED_SECRET_NAME \
+            --from-file=tunnel.json=./tunnel.json \
+            -n ingress-public --dry-run=client -o yaml | kubectl apply -f -
 
-  #     - name: Deploy Traefik with Helm
-  #       env:
-  #         PUBLIC_DOMAIN: ${{ secrets.PUBLIC_DOMAIN }}
-  #         CF_TUNNEL_NAME: ${{ secrets.CF_TUNNEL_NAME }}
-  #         CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
-  #       run: |
-  #         helm repo add traefik https://traefik.github.io/charts
-  #         helm repo update
-  #         helm upgrade --install traefik-public traefik/traefik \
-  #           --namespace ingress-public \
-  #           --create-namespace \
-  #           --values helm/traefik-public/values.yaml \
-  #           --set-string publicDomain=$PUBLIC_DOMAIN \
-  #           --set-string tunnelName=$CF_TUNNEL_NAME \
-  #           --set-string contactEmail=$CONTACT_EMAIL
+      # - name: Deploy Traefik with Helm
+      #   env:
+      #     PUBLIC_DOMAIN: ${{ secrets.PUBLIC_DOMAIN }}
+      #     CF_TUNNEL_NAME: ${{ secrets.CF_TUNNEL_NAME }}
+      #     CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
+      #   run: |
+      #     helm repo add traefik https://traefik.github.io/charts
+      #     helm repo update
+      #     helm upgrade --install traefik-public traefik/traefik \
+      #       --namespace ingress-public \
+      #       --create-namespace \
+      #       --values helm/traefik-public/values.yaml \
+      #       --set-string publicDomain=$PUBLIC_DOMAIN \
+      #       --set-string tunnelName=$CF_TUNNEL_NAME \
+      #       --set-string contactEmail=$CONTACT_EMAIL \
+      #       --set-string cloudflared.secretName=$CLOUDFLARED_SECRET_NAME
 
-  #     - name: Apply Traefik IngressRoute manifest
-  #       run: |
-  #         kubectl apply -f ~/media-config/traefik/traefik-public-ingressroute.yaml
+      # - name: Apply Traefik IngressRoute manifest
+      #   run: |
+      #     kubectl apply -f ~/media-config/traefik/traefik-public-ingressroute.yaml
