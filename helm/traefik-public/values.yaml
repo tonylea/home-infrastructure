@@ -22,6 +22,11 @@ volumes:
 volumeMounts:
   - name: data
     mountPath: /data
+  - name: cloudflared-tunnel
+    mountPath: /etc/cloudflared
+    readOnly: true
+  - name: traefik-config
+    mountPath: { { .Values.hostVolumePath } }
 
 extraVolumes:
   - name: cloudflared-tunnel
