@@ -13,12 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12.2
+
       - name: Terraform Init & Apply
         working-directory: terraform/cloudflare
         env:
           TF_VAR_cloudflare_api_token: ${{ secrets.CF_API_TOKEN }}
-          TF_VAR_cloudflare_zone_id: ${{ secrets.CF_ZONE_ID }}
           TF_VAR_public_domain: ${{ secrets.PUBLIC_DOMAIN }}
+          TF_VAR_cloudflare_zone_id: ${{ secrets.CF_ZONE_ID }}
           TF_VAR_cname_target: ${{ secrets.CF_CNAME_TARGET }}
           TF_TOKEN_app_terraform_io: ${{ secrets.TF_CLOUD_TOKEN }}
         run: |
@@ -49,7 +54,7 @@ jobs:
         run: |
           echo "$TUNNEL_SECRET_B64" | base64 --decode > ./tunnel.json
           kubectl create ns ingress-public || true
-          kubectl create secret generic $CLOUDFLARED_SECRET_NAME \
+          kubectl create secret generic "$CLOUDFLARED_SECRET_NAME" \
             --from-file=tunnel.json=./tunnel.json \
             -n ingress-public --dry-run=client -o yaml | kubectl apply -f -
 
@@ -67,8 +72,7 @@ jobs:
       #       --values helm/traefik-public/values.yaml \
       #       --set-string publicDomain=$PUBLIC_DOMAIN \
       #       --set-string tunnelName=$CF_TUNNEL_NAME \
-      #       --set-string contactEmail=$CONTACT_EMAIL \
-      #       --set-string cloudflared.secretName=$CLOUDFLARED_SECRET_NAME
+      #       --set-string contactEmail=$CONTACT_EMAIL
 
       # - name: Apply Traefik IngressRoute manifest
       #   run: |
