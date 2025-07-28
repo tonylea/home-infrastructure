@@ -1,13 +1,6 @@
 cloudflared:
   secretName: cloudflared-tunnel
 
-env:
-  - name: CF_API_TOKEN
-    valueFrom:
-      secretKeyRef:
-        name: cloudflare-api-token-secret
-        key: CF_API_TOKEN
-
 additionalArguments:
   - "--entrypoints.web.address=:80"
   - "--entrypoints.websecure.address=:443"
@@ -38,14 +31,6 @@ extraVolumeMounts:
     readOnly: true
   - name: traefik-data
     mountPath: /data
-
-ingressRoute:
-  dashboard:
-    enabled: true
-    entryPoints: ["websecure"]
-    annotations:
-      kubernetes.io/ingress.class: traefik
-      traefik.ingress.kubernetes.io/router.entrypoints: websecure
 
 entryPoints:
   web:
