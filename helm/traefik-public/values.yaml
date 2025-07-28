@@ -1,11 +1,19 @@
 cloudflared:
   secretName: cloudflared-tunnel
 
+env:
+  - name: CF_API_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: cloudflare-api-token-secret
+        key: CF_API_TOKEN
+
 additionalArguments:
   - "--entrypoints.web.address=:80"
   - "--entrypoints.websecure.address=:443"
-  - "--certificatesresolvers.lan.acme.tlschallenge=true"
-  - "--certificatesresolvers.lan.acme.email={{ .Values.contactEmail }}"
+  - "--certificatesresolvers.lan.acme.dnschallenge=true"
+  - "--certificatesresolvers.lan.acme.dnschallenge.provider=cloudflare"
+  - "--certificatesresolvers.lan.acme.email=$CONTACT_EMAIL"
   - "--certificatesresolvers.lan.acme.storage=/data/acme.json"
 
 extraInitContainers:

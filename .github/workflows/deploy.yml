@@ -59,6 +59,14 @@ jobs:
             --from-file=tunnel.json=./tunnel.json \
             -n ingress-public --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Create Cloudflare API token secret in Kubernetes
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          kubectl create secret generic cloudflare-api-token-secret \
+            --from-literal=CF_API_TOKEN="$CF_API_TOKEN" \
+            -n ingress-public --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Deploy Traefik with Helm
         env:
           PUBLIC_DOMAIN: ${{ secrets.PUBLIC_DOMAIN }}
