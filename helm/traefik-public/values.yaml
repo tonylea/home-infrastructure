@@ -1,9 +1,3 @@
-publicDomain: yourdomain.tld
-contactEmail: contact@yourdomain.tld
-tunnelName: your-tunnel-name
-
-hostVolumePath: "REPLACE_AT_RUNTIME"
-
 cloudflared:
   secretName: cloudflared-tunnel
 
@@ -14,29 +8,20 @@ additionalArguments:
   - "--certificatesresolvers.lan.acme.email={{ .Values.contactEmail }}"
   - "--certificatesresolvers.lan.acme.storage=/data/acme.json"
 
-volumes:
-  - name: data
-    hostPath:
-      path: "REPLACE_AT_RUNTIME"
-
-volumeMounts:
-  - name: data
-    mountPath: /data
-  - name: cloudflared-tunnel
-    mountPath: /etc/cloudflared
-    readOnly: true
-  - name: traefik-config
-    mountPath: { { .Values.hostVolumePath } }
-
 extraVolumes:
   - name: cloudflared-tunnel
     secret:
       secretName: cloudflared-tunnel
+  - name: traefik-data
+    hostPath:
+      path: /var/lib/traefik # gets overridden at runtime
 
 extraVolumeMounts:
   - name: cloudflared-tunnel
     mountPath: /etc/cloudflared
     readOnly: true
+  - name: traefik-data
+    mountPath: /data
 
 ingressRoute:
   dashboard:
