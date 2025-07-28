@@ -1,6 +1,9 @@
 publicDomain: yourdomain.tld
 contactEmail: contact@yourdomain.tld
 tunnelName: your-tunnel-name
+
+hostVolumePath: "REPLACE_AT_RUNTIME"
+
 cloudflared:
   secretName: cloudflared-tunnel
 
@@ -13,8 +16,8 @@ additionalArguments:
 
 volumes:
   - name: data
-    persistentVolumeClaim:
-      claimName: traefik-acme-pvc
+    hostPath:
+      path: "REPLACE_AT_RUNTIME"
 
 volumeMounts:
   - name: data
@@ -23,7 +26,7 @@ volumeMounts:
 extraVolumes:
   - name: cloudflared-tunnel
     secret:
-      secretName: { { .Values.cloudflared.secretName } }
+      secretName: cloudflared-tunnel
 
 extraVolumeMounts:
   - name: cloudflared-tunnel

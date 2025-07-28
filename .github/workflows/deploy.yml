@@ -73,7 +73,8 @@ jobs:
             --values helm/traefik-public/values.yaml \
             --set-string publicDomain=$PUBLIC_DOMAIN \
             --set-string tunnelName=$CF_TUNNEL_NAME \
-            --set-string contactEmail=$CONTACT_EMAIL
+            --set-string contactEmail=$CONTACT_EMAIL \
+            --set-string hostVolumePath="$HOME/media-config/traefik"
 
       # - name: Apply Traefik IngressRoute manifest
       #   run: |
