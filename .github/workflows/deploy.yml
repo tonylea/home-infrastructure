@@ -59,21 +59,21 @@ jobs:
             --from-file=tunnel.json=./tunnel.json \
             -n ingress-public --dry-run=client -o yaml | kubectl apply -f -
 
-      # - name: Deploy Traefik with Helm
-      #   env:
-      #     PUBLIC_DOMAIN: ${{ secrets.PUBLIC_DOMAIN }}
-      #     CF_TUNNEL_NAME: ${{ secrets.CF_TUNNEL_NAME }}
-      #     CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
-      #   run: |
-      #     helm repo add traefik https://traefik.github.io/charts
-      #     helm repo update
-      #     helm upgrade --install traefik-public traefik/traefik \
-      #       --namespace ingress-public \
-      #       --create-namespace \
-      #       --values helm/traefik-public/values.yaml \
-      #       --set-string publicDomain=$PUBLIC_DOMAIN \
-      #       --set-string tunnelName=$CF_TUNNEL_NAME \
-      #       --set-string contactEmail=$CONTACT_EMAIL
+      - name: Deploy Traefik with Helm
+        env:
+          PUBLIC_DOMAIN: ${{ secrets.PUBLIC_DOMAIN }}
+          CF_TUNNEL_NAME: ${{ secrets.CF_TUNNEL_NAME }}
+          CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
+        run: |
+          helm repo add traefik https://traefik.github.io/charts
+          helm repo update
+          helm upgrade --install traefik-public traefik/traefik \
+            --namespace ingress-public \
+            --create-namespace \
+            --values helm/traefik-public/values.yaml \
+            --set-string publicDomain=$PUBLIC_DOMAIN \
+            --set-string tunnelName=$CF_TUNNEL_NAME \
+            --set-string contactEmail=$CONTACT_EMAIL
 
       # - name: Apply Traefik IngressRoute manifest
       #   run: |
