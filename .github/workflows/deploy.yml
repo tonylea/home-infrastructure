@@ -76,10 +76,12 @@ jobs:
             --set-string extraVolumeMounts[1].mountPath="/data" \
             --set installCRDs=true
 
-      - name: Wait for IngressRoute CRD
+      - name: Wait for Traefik Pod
         run: |
-          kubectl wait --for=condition=Established \
-            --timeout=60s crd/ingressroutes.traefik.containo.us
+          kubectl wait --namespace ingress-public \
+            --for=condition=Ready pod \
+            --selector=app.kubernetes.io/name=traefik \
+            --timeout=90s
 
       - name: Apply Traefik IngressRoute manifest
         run: |
